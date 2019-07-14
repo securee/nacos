@@ -1,12 +1,11 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Copyright 1999-2018 Alibaba Group Holding Ltd.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -78,6 +77,26 @@ public @interface NacosProperties {
     String ENCODE = "encode";
 
     /**
+     * The property name of "long-poll.timeout"
+     */
+    String CONFIG_LONG_POLL_TIMEOUT = "configLongPollTimeout";
+
+    /**
+     * The property name of "config.retry.time"
+     */
+    String CONFIG_RETRY_TIME = "configRetryTime";
+
+    /**
+     * The property name of "maxRetry"
+     */
+    String MAX_RETRY = "maxRetry";
+
+    /**
+     * The property name of "enableRemoteSyncConfig"
+     */
+    String ENABLE_REMOTE_SYNC_CONFIG = "enableRemoteSyncConfig";
+
+    /**
      * The placeholder of endpoint, the value is <code>"${nacos.endpoint:}"</code>
      */
     String ENDPOINT_PLACEHOLDER = "${" + PREFIX + ENDPOINT + ":}";
@@ -116,6 +135,26 @@ public @interface NacosProperties {
      * The placeholder of {@link NacosProperties#ENCODE encode}, the value is <code>"${nacos.encode:UTF-8}"</code>
      */
     String ENCODE_PLACEHOLDER = "${" + PREFIX + ENCODE + ":UTF-8}";
+
+    /**
+     * The placeholder of {@link NacosProperties#CONFIG_LONG_POLL_TIMEOUT configLongPollTimeout}, the value is <code>"${nacos.configLongPollTimeout:}"</code>
+     */
+    String CONFIG_LONG_POLL_TIMEOUT_PLACEHOLDER = "${" + PREFIX + CONFIG_LONG_POLL_TIMEOUT + ":}";
+
+    /**
+     * The placeholder of {@link NacosProperties#CONFIG_RETRY_TIME configRetryTime}, the value is <code>"${nacos.configRetryTime:}"</code>
+     */
+    String CONFIG_RETRY_TIME_PLACEHOLDER = "${" + PREFIX + CONFIG_RETRY_TIME + ":}";
+
+    /**
+     * The placeholder of {@link NacosProperties#MAX_RETRY maxRetry}, the value is <code>"${nacos.maxRetry:}"</code>
+     */
+    String MAX_RETRY_PLACEHOLDER = "${" + PREFIX + MAX_RETRY + ":}";
+
+    /**
+     * The placeholder of {@link NacosProperties#ENABLE_REMOTE_SYNC_CONFIG enableRemoteSyncConfig}, the value is <code>"${nacos.enableRemoteSyncConfig:}"</code>
+     */
+    String ENABLE_REMOTE_SYNC_CONFIG_PLACEHOLDER = "${" + PREFIX + ENABLE_REMOTE_SYNC_CONFIG + "}";
 
     /**
      * The property of "endpoint"
@@ -180,5 +219,37 @@ public @interface NacosProperties {
      * @see #ENCODE_PLACEHOLDER
      */
     String encode() default ENCODE_PLACEHOLDER;
+
+    /**
+     * The property of "configLongPollTimeout"
+     *
+     * @return empty as default value
+     * @see #CONFIG_LONG_POLL_TIMEOUT_PLACEHOLDER
+     */
+    String configLongPollTimeout() default CONFIG_LONG_POLL_TIMEOUT_PLACEHOLDER;
+
+    /**
+     * The property of "configRetryTime"
+     *
+     * @return empty as default value
+     * @see #CONFIG_RETRY_TIME_PLACEHOLDER
+     */
+    String configRetryTime() default CONFIG_RETRY_TIME_PLACEHOLDER;
+
+    /**
+     * The property of "maxRetry"
+     *
+     * @return empty as default value
+     * @see #MAX_RETRY
+     */
+    String maxRetry() default MAX_RETRY_PLACEHOLDER;
+
+    /**
+     * The property of "enableRemoteSyncConfig"
+     *
+     * @return empty as default value
+     * @see #ENABLE_REMOTE_SYNC_CONFIG
+     */
+    String enableRemoteSyncConfig() default ENABLE_REMOTE_SYNC_CONFIG_PLACEHOLDER;
 
 }
