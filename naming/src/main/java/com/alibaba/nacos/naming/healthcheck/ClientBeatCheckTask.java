@@ -17,24 +17,19 @@ package com.alibaba.nacos.naming.healthcheck;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.annotation.JSONField;
-import com.alibaba.nacos.api.common.Constants;
-import com.alibaba.nacos.api.naming.PreservedMetadataKeys;
-import com.alibaba.nacos.naming.boot.RunningConfig;
-import com.alibaba.nacos.naming.boot.SpringContext;
+import com.alibaba.nacos.core.utils.ApplicationUtils;
+import com.alibaba.nacos.naming.consistency.KeyBuilder;
 import com.alibaba.nacos.naming.core.DistroMapper;
 import com.alibaba.nacos.naming.core.Instance;
 import com.alibaba.nacos.naming.core.Service;
+import com.alibaba.nacos.naming.healthcheck.events.InstanceHeartbeatTimeoutEvent;
 import com.alibaba.nacos.naming.misc.*;
 import com.alibaba.nacos.naming.push.PushService;
 import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.Response;
-import org.springframework.util.StringUtils;
 
 import java.net.HttpURLConnection;
 import java.util.List;
-import java.util.Map;
-
-import static com.alibaba.nacos.naming.misc.UtilsAndCommons.NUMBER_PATTERN;
 
 
 /**
@@ -53,26 +48,34 @@ public class ClientBeatCheckTask implements Runnable {
 
     @JSONField(serialize = false)
     public PushService getPushService() {
-        return SpringContext.getAppContext().getBean(PushService.class);
+        return ApplicationUtils.getBean(PushService.class);
     }
 
     @JSONField(serialize = false)
     public DistroMapper getDistroMapper() {
-        return SpringContext.getAppContext().getBean(DistroMapper.class);
+        return ApplicationUtils.getBean(DistroMapper.class);
     }
 
     public GlobalConfig getGlobalConfig() {
-        return SpringContext.getAppContext().getBean(GlobalConfig.class);
+        return ApplicationUtils.getBean(GlobalConfig.class);
+    }
+
+    public SwitchDomain getSwitchDomain() {
+        return ApplicationUtils.getBean(SwitchDomain.class);
     }
 
     public String taskKey() {
-        return service.getName();
+        return KeyBuilder.buildServiceMetaKey(service.getNamespaceId(), service.getName());
     }
 
     @Override
     public void run() {
         try {
             if (!getDistroMapper().responsible(service.getName())) {
+                return;
+            }
+
+            if (!getSwitchDomain().isHealthCheckEnabled()) {
                 return;
             }
 
@@ -87,7 +90,8 @@ public class ClientBeatCheckTask implements Runnable {
                             Loggers.EVT_LOG.info("{POS} {IP-DISABLED} valid: {}:{}@{}@{}, region: {}, msg: client timeout after {}, last beat: {}",
                                 instance.getIp(), instance.getPort(), instance.getClusterName(), service.getName(),
                                 UtilsAndCommons.LOCALHOST_SITE, instance.getInstanceHeartBeatTimeOut(), instance.getLastBeat());
-                            getPushService().serviceChanged(service.getNamespaceId(), service.getName());
+                            getPushService().serviceChanged(service);
+                            ApplicationUtils.publishEvent(new InstanceHeartbeatTimeoutEvent(this, instance));
                         }
                     }
                 }
@@ -99,6 +103,11 @@ public class ClientBeatCheckTask implements Runnable {
 
             // then remove obsolete instances:
             for (Instance instance : instances) {
+
+                if (instance.isMarked()) {
+                    continue;
+                }
+
                 if (System.currentTimeMillis() - instance.getLastBeat() > instance.getIpDeleteTimeout()) {
                     // delete instance
                     Loggers.SRV_LOG.info("[AUTO-DELETE-IP] service: {}, ip: {}", service.getName(), JSON.toJSONString(instance));
@@ -124,7 +133,7 @@ public class ClientBeatCheckTask implements Runnable {
                 .appendParam("serviceName", service.getName())
                 .appendParam("namespaceId", service.getNamespaceId());
 
-            String url = "http://127.0.0.1:" + RunningConfig.getServerPort() + RunningConfig.getContextPath()
+            String url = "http://127.0.0.1:" + ApplicationUtils.getPort() + ApplicationUtils.getContextPath()
                 + UtilsAndCommons.NACOS_NAMING_CONTEXT + "/instance?" + request.toUrl();
 
             // delete instance asynchronously:
